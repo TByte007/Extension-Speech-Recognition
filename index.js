@@ -165,7 +165,8 @@ async function processTranscript(transcript, is_speech) {
 
             console.debug(DEBUG_PREFIX + 'no message mapping found, processing transcript as normal message');
             const textarea = $('#send_textarea');
-
+            const actDel = extension_settings.actionDelimiter;
+            const spDel = extension_settings.speechDelimiterDelimiter;
             switch (messageMode) {
                 case 'auto_send':
                     // clear message area to avoid double message
@@ -180,18 +181,18 @@ async function processTranscript(transcript, is_speech) {
                 case 'replace':
                     console.debug(DEBUG_PREFIX + 'Replacing message');
                     if(is_speech)
-                        textarea.val(existingMessage + ' "' + transcriptFormatted + '"');
+                        textarea.val(spDel + transcriptFormatted + spDel);
                     else
-                        textarea.val(existingMessage + ' *' + transcriptFormatted + '*');
+                        textarea.val(actDel + transcriptFormatted + actDel);
                     break;
 
                 case 'append':
                     console.debug(DEBUG_PREFIX + 'Appending message');
                     const existingMessage = textarea.val();
                     if(is_speech)
-                        textarea.val(existingMessage + ' "' + transcriptFormatted + '"');
+                        textarea.val(existingMessage + ' ' + spDel + transcriptFormatted + spDel);
                     else
-                        textarea.val(existingMessage + ' *' + transcriptFormatted + '*');
+                        textarea.val(existingMessage + ' ' + actDel + transcriptFormatted + actDel);
                     break;
 
                 default:
@@ -240,23 +241,7 @@ function loadNavigatorAudioRecording() {
             new VAD(settings);
 
             mediaRecorder = new MediaRecorder(stream);
-/*
-            micButton.off('click').on('click', function () {
-                if (!audioRecording) {
-                    mediaRecorder.start();
-                    console.debug(DEBUG_PREFIX + mediaRecorder.state);
-                    console.debug(DEBUG_PREFIX + 'speech recorder started');
-                    audioRecording = true;
-                    activateMicIcon(micButton);
-                } else {
-                    mediaRecorder.stop();
-                    console.debug(DEBUG_PREFIX + mediaRecorder.state);
-                    console.debug(DEBUG_PREFIX + 'speech recorder stopped');
-                    audioRecording = false;
-                    deactivateMicIcon(micButton);
-                }
-            });
-*/
+
             let is_speech = true;
             micButtonAct.off('pointerdown').on('pointerdown', function () {
                 if (!audioRecording) {
@@ -352,6 +337,7 @@ function loadSttProvider(provider) {
 
     if (sttProviderName == 'None') {
         $('#microphone_button').hide();
+        $('#microphone_button_act').hide();
         $('#speech_recognition_message_mode_div').hide();
         $('#speech_recognition_message_mapping_div').hide();
         $('#speech_recognition_language_div').hide();
@@ -375,6 +361,7 @@ function loadSttProvider(provider) {
         sttProvider.processTranscriptFunction = processTranscript;
         sttProvider.loadSettings(extension_settings.speech_recognition[sttProviderName]);
         $('#microphone_button').show();
+        $('#microphone_button_act').show();
     }
 
     const nonStreamingProviders = ['Vosk', 'Whisper (OpenAI)', 'Whisper (Extras)', 'Whisper (Local)', 'KoboldCpp'];
@@ -382,12 +369,15 @@ function loadSttProvider(provider) {
         sttProvider.loadSettings(extension_settings.speech_recognition[sttProviderName]);
         loadNavigatorAudioRecording();
         $('#microphone_button').show();
+        $('#microphone_button_act').show();
     }
 
     if (sttProviderName == 'Streaming') {
         sttProvider.loadSettings(extension_settings.speech_recognition[sttProviderName]);
-        $('#microphone_button').off('click');
+        $('#microphone_button').off('pointerdown').off('pointerup');
         $('#microphone_button').hide();
+        $('#microphone_button_act').off('pointerdown').off('pointerup');
+        $('#microphone_button_act').hide();
     }
 
     $('#speech_recognition_ptt_div').toggle(sttProviderName != 'Streaming');
@@ -462,6 +452,8 @@ const defaultSettings = {
     messageMapping: [],
     messageMappingEnabled: false,
     voiceActivationEnabled: false,
+    speechDelimiter: '"',
+    actionDelimiter: '*',
     /**
      * @type {KeyCombo} Push-to-talk key combo
      */
