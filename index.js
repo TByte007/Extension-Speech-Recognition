@@ -130,7 +130,7 @@ async function moduleWorker() {
     }
 }
 
-async function processTranscript(transcript) {
+async function processTranscript(transcript, is_speech) {
     try {
         const transcriptOriginal = transcript;
         let transcriptFormatted = transcriptOriginal.trim();
@@ -179,13 +179,19 @@ async function processTranscript(transcript) {
 
                 case 'replace':
                     console.debug(DEBUG_PREFIX + 'Replacing message');
-                    textarea.val(transcriptFormatted);
+                    if(is_speech)
+                        textarea.val(existingMessage + ' "' + transcriptFormatted + '"');
+                    else
+                        textarea.val(existingMessage + ' *' + transcriptFormatted + '*');
                     break;
 
                 case 'append':
                     console.debug(DEBUG_PREFIX + 'Appending message');
                     const existingMessage = textarea.val();
-                    textarea.val(existingMessage + ' ' + transcriptFormatted);
+                    if(is_speech)
+                        textarea.val(existingMessage + ' "' + transcriptFormatted + '"');
+                    else
+                        textarea.val(existingMessage + ' *' + transcriptFormatted + '*');
                     break;
 
                 default:
@@ -206,9 +212,10 @@ function loadNavigatorAudioRecording() {
     if (navigator.mediaDevices.getUserMedia) {
         console.debug(DEBUG_PREFIX + ' getUserMedia supported by browser.');
         const micButton = $('#microphone_button');
+        const micButtonAct = $('#microphone_button_act');
 
         let onSuccess = function (stream) {
-            const audioContext = new AudioContext({ sampleRate: 16000 });
+            const audioContext = new AudioContext();
             const source = audioContext.createMediaStreamSource(stream);
             const settings = {
                 source: source,
@@ -233,22 +240,57 @@ function loadNavigatorAudioRecording() {
             new VAD(settings);
 
             mediaRecorder = new MediaRecorder(stream);
-
+/*
             micButton.off('click').on('click', function () {
                 if (!audioRecording) {
                     mediaRecorder.start();
                     console.debug(DEBUG_PREFIX + mediaRecorder.state);
-                    console.debug(DEBUG_PREFIX + 'recorder started');
+                    console.debug(DEBUG_PREFIX + 'speech recorder started');
                     audioRecording = true;
                     activateMicIcon(micButton);
-                }
-                else {
+                } else {
                     mediaRecorder.stop();
                     console.debug(DEBUG_PREFIX + mediaRecorder.state);
-                    console.debug(DEBUG_PREFIX + 'recorder stopped');
+                    console.debug(DEBUG_PREFIX + 'speech recorder stopped');
                     audioRecording = false;
                     deactivateMicIcon(micButton);
                 }
+            });
+*/
+            let is_speech = true;
+            micButtonAct.off('pointerdown').on('pointerdown', function () {
+                if (!audioRecording) {
+                    mediaRecorder.start();
+                    console.debug(DEBUG_PREFIX + mediaRecorder.state);
+                    console.debug(DEBUG_PREFIX + 'speech recorder started');
+                    audioRecording = true;
+                    activateMicIcon(micButtonAct);
+                } 
+            });
+            micButtonAct.off('pointerup').on('pointerup', function () {
+                    mediaRecorder.stop();
+                    console.debug(DEBUG_PREFIX + mediaRecorder.state);
+                    console.debug(DEBUG_PREFIX + 'speech recorder stopped');
+                    audioRecording = false;
+                    deactivateMicIcon(micButtonAct);
+                    is_speech = false;
+            });
+            micButton.off('pointerdown').on('pointerdown', function () {
+                if (!audioRecording) {
+                    mediaRecorder.start();
+                    console.debug(DEBUG_PREFIX + mediaRecorder.state);
+                    console.debug(DEBUG_PREFIX + 'speech recorder started');
+                    audioRecording = true;
+                    activateMicIcon(micButton);
+                } 
+            });
+            micButton.off('pointerup').on('pointerup', function () {
+                    mediaRecorder.stop();
+                    console.debug(DEBUG_PREFIX + mediaRecorder.state);
+                    console.debug(DEBUG_PREFIX + 'speech recorder stopped');
+                    audioRecording = false;
+                    deactivateMicIcon(micButton);
+                    is_speech = true;
             });
 
             mediaRecorder.onstop = async function () {
@@ -266,7 +308,8 @@ function loadNavigatorAudioRecording() {
 
                 // TODO: lock and release recording while processing?
                 console.debug(DEBUG_PREFIX + 'received transcript:', transcript);
-                processTranscript(transcript);
+                console.debug(DEBUG_PREFIX + 'is speech:', is_speech);
+                processTranscript(transcript, is_speech);
             };
 
             mediaRecorder.ondataavailable = function (e) {
@@ -839,14 +882,16 @@ $(document).ready(function () {
         document.body.addEventListener('keydown', processPushToTalkStart);
         document.body.addEventListener('keyup', processPushToTalkEnd);
 
-        const $button = $('<div id="microphone_button" class="fa-solid fa-microphone speech-toggle interactable" tabindex="0" title="Click to speak"></div>');
+        const $button = $('<div id="microphone_button"  style="color:green;" class="fa-solid fa-microphone speech-toggle interactable" tabindex="0" title="Click to speak"></div>');
+        const $button_act = $('<div id="microphone_button_act" style="color:red;" class="fa-solid fa-microphone-alt speech-toggle interactable" tabindex="1" title="Click to Act"></div>');
         // For versions before 1.10.10
         if ($('#send_but_sheld').length == 0) {
             $('#rightSendForm').prepend($button);
+            $('#rightSendForm').prepend($button_act);
         } else {
             $('#send_but_sheld').prepend($button);
+            $('#send_but_sheld').prepend($button_act);
         }
-
     }
     addExtensionControls(); // No init dependencies
     loadSettings(); // Depends on Extension Controls and loadTtsProvider
