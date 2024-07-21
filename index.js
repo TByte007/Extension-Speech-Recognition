@@ -165,8 +165,8 @@ async function processTranscript(transcript, is_speech) {
 
             console.debug(DEBUG_PREFIX + 'no message mapping found, processing transcript as normal message');
             const textarea = $('#send_textarea');
-            const actDel = extension_settings.actionDelimiter;
-            const spDel = extension_settings.speechDelimiterDelimiter;
+            const actDel = extension_settings.speech_recognition.actionDelimiter;
+            const spDel = extension_settings.speech_recognition.speechDelimiterDelimiter;
             switch (messageMode) {
                 case 'auto_send':
                     // clear message area to avoid double message
