@@ -262,7 +262,7 @@ function loadNavigatorAudioRecording() {
                 if (!audioRecording) {
                     mediaRecorder.start();
                     console.debug(DEBUG_PREFIX + mediaRecorder.state);
-                    console.debug(DEBUG_PREFIX + 'speech recorder started');
+                    console.debug(DEBUG_PREFIX + 'action recorder started');
                     audioRecording = true;
                     activateMicIcon(micButtonAct);
                 } 
@@ -270,7 +270,7 @@ function loadNavigatorAudioRecording() {
             micButtonAct.off('pointerup').on('pointerup', function () {
                     mediaRecorder.stop();
                     console.debug(DEBUG_PREFIX + mediaRecorder.state);
-                    console.debug(DEBUG_PREFIX + 'speech recorder stopped');
+                    console.debug(DEBUG_PREFIX + 'action recorder stopped');
                     audioRecording = false;
                     deactivateMicIcon(micButtonAct);
                     is_speech = false;
