@@ -166,7 +166,7 @@ async function processTranscript(transcript, is_speech) {
             console.debug(DEBUG_PREFIX + 'no message mapping found, processing transcript as normal message');
             const textarea = $('#send_textarea');
             const actDel = extension_settings.speech_recognition.actionDelimiter;
-            const spDel = extension_settings.speech_recognition.speechDelimiterDelimiter;
+            const spDel = extension_settings.speech_recognition.speechDelimiter;
             switch (messageMode) {
                 case 'auto_send':
                     // clear message area to avoid double message
@@ -197,8 +197,8 @@ async function processTranscript(transcript, is_speech) {
 
                 default:
                     console.debug(DEBUG_PREFIX + 'Not supported stt message mode: ' + messageMode);
-
             }
+            document.querySelector('#send_textarea').dispatchEvent(new Event('input', { bubbles: true }));
         }
         else {
             console.debug(DEBUG_PREFIX + 'Empty transcript, do nothing');
@@ -389,7 +389,7 @@ function loadSttProvider(provider) {
  * @param {JQuery} micButton - The jQuery object of the microphone button.
  */
 function activateMicIcon(micButton) {
-    micButton.toggleClass('fa-microphone fa-microphone-slash');
+    micButton.toggleClass('fa-microphone fa-microphone-alt');
     micButton.prop('title', 'Click to end and transcribe');
 }
 
@@ -398,7 +398,7 @@ function activateMicIcon(micButton) {
  * @param {JQuery} micButton - The jQuery object of the microphone button.
  */
 function deactivateMicIcon(micButton) {
-    micButton.toggleClass('fa-microphone fa-microphone-slash');
+    micButton.toggleClass('fa-microphone fa-microphone-alt');
     micButton.prop('title', 'Click to speak');
 }
 
